@@ -1,0 +1,31 @@
+# Seata AT模式分布式事务学习Demo
+
+## 忽略文件
+target/
+*.class
+*.jar
+*.war
+*.ear
+.DS_Store
+.idea/
+*.iml
+*.log
+temp/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# Node
+node_modules/
+npm-debug.log
+
+# Docker
+.dockerignore
+
+# Env
+.env
+.env.local
+.env.prod
