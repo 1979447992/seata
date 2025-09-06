@@ -6,19 +6,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example</groupId>
-    <artifactId>order-service</artifactId>
+    <artifactId>stock-service</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
-    <name>Order Service</name>
-    <description>Seata Demo - Order Service (Oracle Version)</description>
+    <name>Stock Service</name>
+    <description>Seata Demo - Stock Service (Oracle Version)</description>
 
     <properties>
-        <java.version>11</java.version>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-boot.version>2.7.17</spring-boot.version>
-        <spring-cloud.version>2021.0.8</spring-cloud.version>
+        <spring-boot.version>3.1.5</spring-boot.version>
         <seata.version>1.7.1</seata.version>
         <mybatis-plus.version>3.5.4</mybatis-plus.version>
         <oracle.version>21.9.0.0</oracle.version>
@@ -34,12 +33,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
-        </dependency>
-        
-        <!-- Spring Cloud OpenFeign -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
         
         <!-- Seata -->
@@ -64,6 +57,20 @@
             <scope>runtime</scope>
         </dependency>
         
+        <!-- Oracle UCP (Universal Connection Pool) -->
+        <dependency>
+            <groupId>com.oracle.database.ucp</groupId>
+            <artifactId>ucp</artifactId>
+            <version>${oracle.version}</version>
+        </dependency>
+        
+        <!-- Oracle NLS (National Language Support) -->
+        <dependency>
+            <groupId>com.oracle.database.nls</groupId>
+            <artifactId>orai18n</artifactId>
+            <version>${oracle.version}</version>
+        </dependency>
+        
         <!-- Validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -77,13 +84,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

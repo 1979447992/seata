@@ -6,10 +6,10 @@ spring:
     name: stock-service
   
   datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${DB_HOST:localhost}:5432/seata_demo
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@${DB_HOST:localhost}:${DB_PORT:1521}/XEPDB1
+    username: ${DB_USERNAME:seata_user}
+    password: ${DB_PASSWORD:seata_pass}
     hikari:
       minimum-idle: 5
       maximum-pool-size: 15
@@ -19,6 +19,9 @@ spring:
       pool-name: StockServiceHikariCP
       max-lifetime: 1800000
       connection-timeout: 30000
+      # Oracle特定配置
+      connection-init-sql: "SELECT 1 FROM DUAL"
+      validation-timeout: 3000
 
 mybatis-plus:
   configuration:
@@ -29,11 +32,16 @@ mybatis-plus:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+      # Oracle序列配置
+      id-type: auto
+      # Oracle大小写敏感配置
+      table-underline: true
+      column-underline: true
 
 seata:
   enabled: true
   application-id: stock-service
-  # 🌟 事务组：必须与order-service使用相同的事务组
+  # 🌟 事务组：多个微服务使用相同事务组来参与同一分布式事务
   tx-service-group: seata_demo_tx_group
   service:
     vgroup-mapping:
@@ -50,3 +58,5 @@ logging:
   level:
     io.seata: debug
     com.example.stock: debug
+    oracle.jdbc: info
+    oracle.sql: debug

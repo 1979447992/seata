@@ -1,23 +1,29 @@
 version: '3.8'
 
 services:
-  # PostgreSQL 数据库
-  postgres:
-    image: postgres:15-alpine
-    container_name: seata-postgres
+  # Oracle XE 21c 数据库
+  oracle:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: seata-oracle
+    hostname: oracle
     environment:
-      POSTGRES_DB: seata_demo
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      ORACLE_PASSWORD: Oracle123456
+      APP_USER: seata_user
+      APP_USER_PASSWORD: seata_pass
     ports:
-      - "5432:5432"
+      - "1521:1521"
+      - "5500:5500"
     volumes:
-      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - postgres_data:/var/lib/postgresql/data
+      - oracle_data:/opt/oracle/oradata
     networks:
       - seata-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
-  # Seata Server
+  # Seata Server with Database Mode
   seata-server:
     image: seataio/seata-server:1.7.1
     container_name: seata-server
@@ -26,13 +32,28 @@ services:
       - "8091:8091"
       - "7091:7091"
     environment:
-      - SEATA_PORT=8091
-      - SEATA_CONFIG_NAME=file:/root/seata-config/registry
+      - STORE_MODE=db
+      - STORE_DB_DATASOURCE=druid
+      - STORE_DB_DB_TYPE=oracle
+      - STORE_DB_DRIVER_CLASS_NAME=oracle.jdbc.OracleDriver
+      - STORE_DB_URL=jdbc:oracle:thin:@oracle:1521/XEPDB1
+      - STORE_DB_USER=seata_user
+      - STORE_DB_PASSWORD=seata_pass
+      - STORE_DB_MIN_CONN=5
+      - STORE_DB_MAX_CONN=30
+      - STORE_DB_GLOBAL_TABLE=global_table
+      - STORE_DB_BRANCH_TABLE=branch_table
+      - STORE_DB_LOCK_TABLE=lock_table
+      - STORE_DB_QUERY_LIMIT=100
+      - STORE_DB_MAX_WAIT=5000
       - SEATA_IP=seata-server
+      - SEATA_PORT=8091
     volumes:
-      - ./docker/seata-server.conf:/root/seata-config/registry.conf
+      - ./ojdbc8.jar:/seata-server/lib/ojdbc8.jar
+      - ./logs:/root/logs
     depends_on:
-      - postgres
+      oracle:
+        condition: service_healthy
     networks:
       - seata-network
 
@@ -45,14 +66,17 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_HOST=postgres
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
+      - DB_HOST=oracle
+      - DB_PORT=1521
+      - DB_USERNAME=seata_user
+      - DB_PASSWORD=seata_pass
       - SEATA_SERVER_HOST=seata-server
       - STOCK_SERVICE_HOST=stock-service
     depends_on:
-      - postgres
-      - seata-server
+      oracle:
+        condition: service_healthy
+      seata-server:
+        condition: service_started
     networks:
       - seata-network
 
@@ -63,20 +87,23 @@ services:
       dockerfile: Dockerfile
     container_name: stock-service
     ports:
-      - "8081:8081"
+      - "8081:8080"
     environment:
-      - DB_HOST=postgres
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
+      - DB_HOST=oracle
+      - DB_PORT=1521
+      - DB_USERNAME=seata_user
+      - DB_PASSWORD=seata_pass
       - SEATA_SERVER_HOST=seata-server
     depends_on:
-      - postgres
-      - seata-server
+      oracle:
+        condition: service_healthy
+      seata-server:
+        condition: service_started
     networks:
       - seata-network
 
 volumes:
-  postgres_data:
+  oracle_data:
 
 networks:
   seata-network:
