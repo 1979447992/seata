@@ -1,230 +1,237 @@
-# Seata AT模式分布式事务Demo
+# Seata Oracle 分布式事务演示项目
 
-这是一个基于Seata AT模式的分布式事务演示项目，展示了微服务架构下的事务一致性解决方案。
+## 📋 项目简介
 
-## 🎓 学习目标
+这是一个基于 Seata AT 模式的分布式事务演示项目，使用 Oracle 数据库进行事务管理。项目包含订单服务（order-service）和库存服务（stock-service）两个微服务，演示分布式事务的提交和回滚机制。
 
-通过这个Demo，你将学会：
-1. **Seata AT模式的工作原理**：理解两阶段提交机制
-2. **分布式事务的配置**：掌握Seata与Spring Boot的集成
-3. **undo_log的作用**：了解自动回滚的实现机制
-4. **异常处理与回滚**：观察分布式事务的回滚过程
-
-## 项目架构
+## 🏗️ 项目架构
 
 ```
 seata-demo/
-├── order-service/          # 订单服务 (端口8080)
-├── stock-service/          # 库存服务 (端口8081)
-├── docker/                 # Docker配置
-│   ├── init.sql            # 数据库初始化脚本
-│   └── seata-server.conf   # Seata服务配置
-├── docker-compose.yml      # Docker编排文件
-└── README.md               # 使用说明
+├── order-service/          # 订单服务
+├── stock-service/          # 库存服务
+├── docker/                 # Docker配置和脚本
+├── docker-compose.yml      # 容器编排配置
+├── seata_init.sql          # Oracle数据库初始化脚本
+└── README.md              # 项目说明文档
 ```
 
-## 技术栈
+## 🛠️ 技术栈
 
-- **Spring Boot**: 3.1.5
-- **JDK**: 17
-- **Seata**: 1.7.1 (AT模式)
-- **数据库**: PostgreSQL 15
-- **构建工具**: Maven
-- **容器化**: Docker
+- **Spring Boot**: 2.7.17
+- **Spring Cloud**: 2021.0.8
+- **Seata**: 1.7.1
+- **Oracle Database**: 21c Express Edition
+- **MyBatis Plus**: 3.5.4
+- **Maven**: 项目管理工具
 
-## 业务场景
+## 🚀 本地开发环境配置
 
-模拟电商下单场景：
-1. **订单服务** 创建订单
-2. **订单服务** 调用 **库存服务** 扣减库存
-3. 当库存不足时触发 **Seata AT模式自动回滚**
+### 1. 前置条件
 
-## 🚀 快速开始
+- JDK 11+
+- IntelliJ IDEA 2025 社区版
+- Maven 3.6+
+- Navicat 或其他 Oracle 数据库客户端
 
-### 1. 启动服务
+### 2. IDEA 运行配置
+
+#### 2.1 配置 order-service
+
+1. **打开 Run Configuration**：
+   - 点击 **Run** → **Edit Configurations...**
+   - 点击 **+** → 选择 **Application**
+
+2. **Basic Settings**：
+   - **Name**: `OrderService-Local`
+   - **Main class**: `com.example.order.OrderServiceApplication`
+   - **Working directory**: `C:\Users\quan\Desktop\seata\seata-demo\order-service`
+   - **Use classpath of module**: 选择 `order-service`
+
+3. **VM Options**:
+   ```
+   -Dspring.profiles.active=local
+   ```
+
+4. **Program Arguments**: (留空)
+
+#### 2.2 配置 stock-service
+
+重复上述步骤，创建另一个配置：
+
+- **Name**: `StockService-Local`
+- **Main class**: `com.example.stock.StockServiceApplication`
+- **Working directory**: `C:\Users\quan\Desktop\seata\seata-demo\stock-service`
+- **Use classpath of module**: 选择 `stock-service`
+- **VM Options**: `-Dspring.profiles.active=local`
+
+#### 2.3 应用和保存
+
+1. 点击 **Apply**
+2. 点击 **OK**
+
+### 3. 启动顺序
+
+1. **先启动 stock-service** (端口 8081)
+2. **再启动 order-service** (端口 8080)
+
+## 🗄️ 数据库配置
+
+### Oracle 连接信息
+
+- **主机**: `47.86.4.117`
+- **端口**: `1521`
+- **服务名**: `XEPDB1`
+- **用户名**: `seata_user`
+- **密码**: `seata_pass`
+
+### Navicat 连接配置
+
+1. 创建新连接
+2. 选择 **Oracle**
+3. 填入上述连接信息
+4. 连接类型选择 **Service Name**
+
+## 📊 数据库表结构
+
+### 业务表
+
+- `t_order` - 订单表
+- `t_stock` - 库存表
+
+### Seata 事务表
+
+- `global_table` - 全局事务表
+- `branch_table` - 分支事务表
+- `lock_table` - 分布式锁表
+- `undo_log` - AT模式回滚日志表
+
+## 🧪 测试接口
+
+### 1. 创建订单（完整流程）
 
 ```bash
-# 进入项目目录
-cd seata-demo
+POST http://localhost:8080/api/order/create
+Content-Type: application/json
 
-# 启动所有服务 (PostgreSQL + Seata Server + 两个微服务)
-docker-compose up -d
-
-# 查看启动状态
-docker-compose ps
+{
+  "userId": "user123",
+  "productId": 1,
+  "count": 2
+}
 ```
 
-### 2. 验证服务状态
+### 2. 调试接口（分步观察事务）
 
 ```bash
-# 检查订单服务
-curl http://localhost:8080/api/order/test
-# 应返回: Order Service is running!
-
-# 检查库存服务
-curl http://localhost:8081/api/stock/test
-# 应返回: Stock Service is running!
-
-# 查看库存状态
-curl http://localhost:8081/api/stock/test/status
+POST http://localhost:8080/order/debug/step-by-step?userId=user123&productId=1&count=2&step=1
 ```
 
-## 🎯 学习测试场景
+支持的步骤参数：
+- `step=1` - 查看当前库存
+- `step=2` - 创建订单记录
+- `step=3` - 扣减库存
+- `step=4` - 完成事务提交
+- `step=5` - 查看最终状态
 
-### 📚 获取学习指南
-```bash
-curl http://localhost:8080/api/order/test/learning-guide
-```
-
-### 场景1：正常事务成功 ✅
-```bash
-# 库存充足，事务正常完成
-curl -X POST http://localhost:8080/api/order/test/success
-
-# 🔍 观察要点：
-# - undo_log表会先插入记录，成功后自动删除
-# - 订单状态从PENDING变为SUCCESS
-# - 库存正常扣减
-```
-
-### 场景2：库存不足回滚 🔄
-```bash
-# 故意扣减超量库存，触发回滚
-curl -X POST http://localhost:8080/api/order/test/rollback-insufficient-stock
-
-# 🔍 观察要点：
-# - 库存服务抛出异常
-# - 全局事务自动回滚
-# - 订单记录被删除（基于undo_log）
-# - 库存数量保持不变
-```
-
-### 场景3：边界测试 ⚖️
-```bash
-# 精确扣减剩余库存
-curl -X POST http://localhost:8080/api/order/test/boundary-test
-
-# 🔍 观察要点：
-# - 库存恰好变为0
-# - 事务正常完成
-# - 测试原子更新的准确性
-```
-
-### 场景4：验证结果 🔍
-```bash
-# 验证指定订单状态
-curl http://localhost:8080/api/order/test/verify/{orderId}
-
-# 查看当前库存
-curl http://localhost:8081/api/stock/test/status
-```
-
-## 📊 数据库观察
-
-连接PostgreSQL查看Seata AT模式的核心表：
+### 3. 库存相关接口
 
 ```bash
-# 连接数据库
-docker exec -it seata-postgres psql -U postgres -d seata_demo
+# 扣减库存
+POST http://localhost:8081/api/stock/deduct?productId=1&quantity=2
 
-# 查看订单表
-SELECT * FROM orders ORDER BY created_at DESC;
+# 查询库存
+GET http://localhost:8081/api/stock/1
 
-# 查看库存表
-SELECT * FROM stock;
-
-# 🔥 重点观察：Seata AT模式核心表
-SELECT * FROM undo_log ORDER BY log_created DESC;
+# 健康检查
+GET http://localhost:8081/api/stock/test
 ```
 
-### undo_log表说明
-- **事务开始时**：插入before image记录
-- **事务成功时**：删除undo_log记录
-- **事务回滚时**：基于undo_log生成反向SQL执行回滚
+## 🔍 分布式事务监控
 
-## 🔧 配置要点解析
+### 在 Navicat 中监控事务状态
 
-### 关键配置1：数据库连接
-```yaml
-# ⚠️ 重要：分布式事务必须关闭自动提交
-auto-commit: false
-```
+实时刷新以下表观察事务变化：
 
-### 关键配置2：事务组
-```yaml
-seata:
-  tx-service-group: seata_demo_tx_group  # 两个服务必须使用相同事务组
-```
+1. **global_table** - 查看全局事务状态
+   ```sql
+   SELECT xid, status, application_id, transaction_name, gmt_create FROM global_table ORDER BY gmt_create DESC;
+   ```
 
-### 关键配置3：全局事务注解
-```java
-@GlobalTransactional(rollbackFor = Exception.class, timeoutMills = 30000)
-```
+2. **branch_table** - 查看分支事务状态
+   ```sql
+   SELECT branch_id, xid, resource_id, status, gmt_create FROM branch_table ORDER BY gmt_create DESC;
+   ```
 
-## 📈 进阶学习
+3. **undo_log** - 查看回滚日志
+   ```sql
+   SELECT branch_id, xid, context, log_status, log_created FROM undo_log ORDER BY log_created DESC;
+   ```
 
-### 并发测试
+4. **业务表变化**
+   ```sql
+   SELECT * FROM t_order ORDER BY create_time DESC;
+   SELECT * FROM t_stock WHERE product_id = 1;
+   ```
+
+## 🚨 常见问题
+
+### 1. 启动失败
+
+- 确认 Oracle 数据库连接正常
+- 检查远程 Seata 服务器状态 (47.86.4.117:8091)
+- 验证 VM Options 中的 `-Dspring.profiles.active=local` 配置
+
+### 2. 事务回滚测试
+
+模拟库存不足场景：
 ```bash
-# 模拟并发扣减库存
-curl http://localhost:8081/api/stock/test/concurrency-guide
+POST http://localhost:8080/api/order/create
+{
+  "userId": "user123",
+  "productId": 1,
+  "count": 9999
+}
 ```
 
-### 性能监控
-- 观察undo_log表大小变化
-- 监控事务处理时间
-- 分析回滚频率和原因
+观察：
+- global_table 中事务状态变为回滚
+- undo_log 中的回滚记录
+- 业务表数据保持一致性
 
-### 对比学习
-- **AT模式** vs **TCC模式**：业务侵入性对比
-- **XA协议** vs **AT模式**：性能差异分析
-- **本地事务** vs **分布式事务**：一致性保证对比
+### 3. 并发测试
 
-## 🎯 学习检查清单
+使用 JMeter 或 Postman 发送并发请求，观察：
+- lock_table 中的锁记录
+- 事务的排队和执行情况
+- 数据最终一致性
 
-- [ ] 理解@GlobalTransactional注解的作用
-- [ ] 观察到undo_log表的插入和删除
-- [ ] 成功触发分布式事务回滚
-- [ ] 验证数据最终一致性
-- [ ] 理解两阶段提交的完整流程
-- [ ] 掌握异常如何影响全局事务
-- [ ] 了解AT模式的优缺点
+## 📈 性能调优建议
 
-## 🔍 故障排除
+1. **数据库连接池配置**
+   - 调整 `hikari.maximum-pool-size`
+   - 优化 `connection-timeout`
 
-### 1. 服务启动失败
-- 检查端口占用: `docker-compose ps`
-- 查看日志: `docker-compose logs [service_name]`
+2. **Seata 配置优化**
+   - 调整事务超时时间
+   - 优化批量操作大小
 
-### 2. Seata连接失败
-- 确认seata-server容器正常运行
-- 检查事务组配置是否一致
+3. **监控指标**
+   - 事务成功率
+   - 平均响应时间
+   - 数据库连接池使用率
 
-### 3. 事务不回滚
-- 确认`auto-commit: false`配置
-- 检查异常是否被正确抛出
-- 验证@GlobalTransactional注解
+## 🔗 相关资源
 
-### 4. undo_log表异常
-- 检查表结构是否正确创建
-- 确认Seata版本兼容性
+- [Seata 官方文档](https://seata.io/zh-cn/)
+- [Spring Cloud Alibaba](https://spring-cloud-alibaba-group.github.io/)
+- [Oracle Database Documentation](https://docs.oracle.com/en/database/)
 
-## 📚 深入学习资源
+## 📝 更新日志
 
-1. **Seata官方文档**：[https://seata.io/zh-cn/docs/overview/what-is-seata.html](https://seata.io/zh-cn/docs/overview/what-is-seata.html)
-2. **AT模式详解**：理解Seata如何实现自动回滚
-3. **分布式事务理论**：CAP定理、BASE理论
-4. **微服务事务模式**：Saga、TCC、AT模式对比
-
-## 停止服务
-
-```bash
-# 停止所有服务
-docker-compose down
-
-# 停止服务并删除数据卷
-docker-compose down -v
-```
+- **v1.0.0** - 初始版本，支持 Oracle 数据库的 Seata AT 模式演示
+- **v1.1.0** - 添加分步调试接口，优化事务监控体验
 
 ---
 
-🎉 **Happy Learning!** 通过这个Demo，你已经掌握了Seata AT模式的核心概念和实际应用！
+🎯 **学习目标**: 通过本项目掌握 Seata 分布式事务在 Oracle 环境下的实际应用，理解 AT 模式的工作原理和最佳实践。

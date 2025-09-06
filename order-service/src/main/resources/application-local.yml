@@ -1,0 +1,69 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: order-service
+  
+  datasource:
+    driver-class-name: oracle.jdbc.OracleDriver
+    # 连接远程Oracle数据库
+    url: jdbc:oracle:thin:@47.86.4.117:1521/XEPDB1
+    username: seata_user
+    password: seata_pass
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      # 🔥 重要：分布式事务必须关闭自动提交，让Seata控制事务提交时机
+      auto-commit: false
+      idle-timeout: 30000
+      pool-name: OrderServiceHikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      # Oracle特定配置
+      connection-init-sql: "SELECT 1 FROM DUAL"
+      validation-timeout: 3000
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      # Oracle序列配置
+      id-type: auto
+      # Oracle大小写敏感配置
+      table-underline: true
+      column-underline: true
+
+seata:
+  enabled: true
+  application-id: order-service
+  # 🌟 事务组：多个微服务使用相同事务组来参与同一分布式事务
+  tx-service-group: seata_demo_tx_group
+  service:
+    vgroup-mapping:
+      # 事务组映射到具体的Seata服务集群
+      seata_demo_tx_group: default
+    default:
+      # 连接远程Seata服务器
+      grouplist: 47.86.4.117:8091
+  config:
+    type: file
+  registry:
+    type: file
+
+stock:
+  service:
+    # 本地调试时，stock-service也运行在本地
+    url: http://localhost:8081
+
+logging:
+  level:
+    io.seata: debug
+    com.example.order: debug
+    oracle.jdbc: info
+    oracle.sql: debug
