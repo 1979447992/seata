@@ -19,7 +19,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot.version>2.7.17</spring-boot.version>
         <spring-cloud.version>2021.0.8</spring-cloud.version>
-        <seata.version>1.7.1</seata.version>
+        <seata.version>2.0.0</seata.version>
         <mybatis-plus.version>3.5.4</mybatis-plus.version>
         <oracle.version>21.9.0.0</oracle.version>
     </properties>

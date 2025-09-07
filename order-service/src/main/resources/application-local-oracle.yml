@@ -1,3 +1,4 @@
+# 本地Oracle开发环境配置
 server:
   port: 8080
 
@@ -7,9 +8,10 @@ spring:
   
   datasource:
     driver-class-name: oracle.jdbc.OracleDriver
-    url: jdbc:oracle:thin:@${DB_HOST:localhost}:${DB_PORT:1521}/XEPDB1
-    username: ${DB_USERNAME:seata_user}
-    password: ${DB_PASSWORD:seata_pass}
+    # 连接本地Oracle数据库
+    url: jdbc:oracle:thin:@127.0.0.1:1521/ORCL
+    username: test
+    password: 123456
     hikari:
       minimum-idle: 5
       maximum-pool-size: 15
@@ -34,11 +36,9 @@ mybatis-plus:
       logic-not-delete-value: 0
       # Oracle序列配置
       id-type: auto
-      # Oracle大小写敏感配置 - 关闭下划线转换，使用显式@TableField注解
-      table-underline: false
-      column-underline: false
-      # Oracle数据库方言
-      db-type: oracle
+      # Oracle大小写敏感配置
+      table-underline: true
+      column-underline: true
 
 seata:
   enabled: true
@@ -50,28 +50,17 @@ seata:
       # 事务组映射到具体的Seata服务集群
       seata_demo_tx_group: default
     default:
-      grouplist: ${SEATA_SERVER_HOST:localhost}:8091
+      # 连接本地Seata服务器
+      grouplist: 127.0.0.1:8091
   config:
     type: file
   registry:
     type: file
-  # Oracle数据库配置 - 关键配置
-  client:
-    rm:
-      oracle:
-        # Oracle标识符不使用引号
-        identifier-quote-string: ""
-        # Oracle关键字转义
-        keyword-checker-enabled: false
-    undo:
-      # Oracle undo log配置
-      data-validation: false
-      log-serialization: jackson
-      log-table: undo_log
 
 stock:
   service:
-    url: http://${STOCK_SERVICE_HOST:localhost}:8081
+    # 本地调试时，stock-service也运行在本地
+    url: http://localhost:8081
 
 logging:
   level:

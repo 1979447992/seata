@@ -1,22 +1,24 @@
+# 本地Oracle开发环境配置  
 server:
-  port: 8080
+  port: 8081
 
 spring:
   application:
-    name: order-service
+    name: stock-service
   
   datasource:
     driver-class-name: oracle.jdbc.OracleDriver
-    url: jdbc:oracle:thin:@${DB_HOST:localhost}:${DB_PORT:1521}/XEPDB1
-    username: ${DB_USERNAME:seata_user}
-    password: ${DB_PASSWORD:seata_pass}
+    # 连接本地Oracle数据库
+    url: jdbc:oracle:thin:@127.0.0.1:1521/ORCL
+    username: test
+    password: 123456
     hikari:
       minimum-idle: 5
       maximum-pool-size: 15
       # 🔥 重要：分布式事务必须关闭自动提交，让Seata控制事务提交时机
       auto-commit: false
       idle-timeout: 30000
-      pool-name: OrderServiceHikariCP
+      pool-name: StockServiceHikariCP
       max-lifetime: 1800000
       connection-timeout: 30000
       # Oracle特定配置
@@ -34,15 +36,13 @@ mybatis-plus:
       logic-not-delete-value: 0
       # Oracle序列配置
       id-type: auto
-      # Oracle大小写敏感配置 - 关闭下划线转换，使用显式@TableField注解
-      table-underline: false
-      column-underline: false
-      # Oracle数据库方言
-      db-type: oracle
+      # Oracle大小写敏感配置
+      table-underline: true
+      column-underline: true
 
 seata:
   enabled: true
-  application-id: order-service
+  application-id: stock-service
   # 🌟 事务组：多个微服务使用相同事务组来参与同一分布式事务
   tx-service-group: seata_demo_tx_group
   service:
@@ -50,32 +50,16 @@ seata:
       # 事务组映射到具体的Seata服务集群
       seata_demo_tx_group: default
     default:
-      grouplist: ${SEATA_SERVER_HOST:localhost}:8091
+      # 连接本地Seata服务器
+      grouplist: 127.0.0.1:8091
   config:
     type: file
   registry:
     type: file
-  # Oracle数据库配置 - 关键配置
-  client:
-    rm:
-      oracle:
-        # Oracle标识符不使用引号
-        identifier-quote-string: ""
-        # Oracle关键字转义
-        keyword-checker-enabled: false
-    undo:
-      # Oracle undo log配置
-      data-validation: false
-      log-serialization: jackson
-      log-table: undo_log
-
-stock:
-  service:
-    url: http://${STOCK_SERVICE_HOST:localhost}:8081
 
 logging:
   level:
     io.seata: debug
-    com.example.order: debug
+    com.example.stock: debug
     oracle.jdbc: info
     oracle.sql: debug

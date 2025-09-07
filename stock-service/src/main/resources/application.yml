@@ -34,9 +34,11 @@ mybatis-plus:
       logic-not-delete-value: 0
       # Oracle序列配置
       id-type: auto
-      # Oracle大小写敏感配置
-      table-underline: true
-      column-underline: true
+      # Oracle大小写敏感配置 - 关闭下划线转换，使用显式@TableField注解
+      table-underline: false
+      column-underline: false
+      # Oracle数据库方言
+      db-type: oracle
 
 seata:
   enabled: true
@@ -53,6 +55,19 @@ seata:
     type: file
   registry:
     type: file
+  # Oracle数据库配置 - 关键配置
+  client:
+    rm:
+      oracle:
+        # Oracle标识符不使用引号
+        identifier-quote-string: ""
+        # Oracle关键字转义
+        keyword-checker-enabled: false
+    undo:
+      # Oracle undo log配置
+      data-validation: false
+      log-serialization: jackson
+      log-table: undo_log
 
 logging:
   level:

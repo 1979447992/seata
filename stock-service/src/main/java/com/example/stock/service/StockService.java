@@ -42,14 +42,14 @@ public class StockService {
             throw new RuntimeException("产品不存在: " + productId);
         }
         
-        log.info("📊 库存检查 - 当前库存: {}, 需要扣减: {}", stock.getQuantity(), quantity);
+        log.info("📊 库存检查 - 当前库存: {}, 需要扣减: {}", stock.getResidue(), quantity);
         
         // 💡 库存不足检查：这里会触发Seata分布式事务回滚
-        if (stock.getQuantity() < quantity) {
+        if (stock.getResidue() < quantity) {
             log.error("💥 库存不足！将触发Seata分布式事务回滚");
-            log.error("📊 库存不足详情：当前库存 {} < 需要数量 {}", stock.getQuantity(), quantity);
+            log.error("📊 库存不足详情：当前库存 {} < 需要数量 {}", stock.getResidue(), quantity);
             log.error("🔄 此异常会传播到全局事务，触发所有服务回滚");
-            throw new RuntimeException("库存不足! 当前库存: " + stock.getQuantity() + ", 需要: " + quantity);
+            throw new RuntimeException("库存不足! 当前库存: " + stock.getResidue() + ", 需要: " + quantity);
         }
         
         // 执行库存扣减 (原子更新，防止并发问题)
@@ -68,7 +68,7 @@ public class StockService {
         );
         
         log.info("✅ 库存扣减成功！");
-        log.info("📊 扣减结果：{} → {} (减少了{})", stock.getQuantity(), updatedStock.getQuantity(), quantity);
+        log.info("📊 扣减结果：{} → {} (减少了{})", stock.getResidue(), updatedStock.getResidue(), quantity);
         log.info("💾 Seata已记录此操作到undo_log，支持自动回滚");
         log.info("🏪 ====== 库存服务：扣减完成 ======");
     }

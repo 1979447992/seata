@@ -1,29 +1,30 @@
 package com.example.stock.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import java.time.LocalDateTime;
 
 @TableName("stock")
 public class Stock {
     
-    @TableId(type = IdType.AUTO)
+    @TableId(value = "ID", type = IdType.NONE)
     private Long id;
     
+    @TableField("PRODUCT_ID")
     private Long productId;
     
-    private Integer quantity;
+    @TableField("TOTAL")
+    private Integer total;
     
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createdAt;
+    @TableField("RESIDUE")
+    private Integer residue;
     
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updatedAt;
+    
     
     public Stock() {}
     
-    public Stock(Long productId, Integer quantity) {
+    public Stock(Long productId, Integer total) {
         this.productId = productId;
-        this.quantity = quantity;
+        this.total = total;
+        this.residue = total; // 初始时剩余量等于总量
     }
 
     public Long getId() {
@@ -42,27 +43,19 @@ public class Stock {
         this.productId = productId;
     }
 
-    public Integer getQuantity() {
-        return quantity;
+    public Integer getTotal() {
+        return total;
     }
 
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
+    public void setTotal(Integer total) {
+        this.total = total;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public Integer getResidue() {
+        return residue;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setResidue(Integer residue) {
+        this.residue = residue;
     }
 }

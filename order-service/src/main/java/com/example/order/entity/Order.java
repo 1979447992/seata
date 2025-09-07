@@ -1,27 +1,24 @@
 package com.example.order.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import java.time.LocalDateTime;
 
 @TableName("orders")
 public class Order {
     
-    @TableId(type = IdType.AUTO)
+    @TableId(value = "ID", type = IdType.NONE)
     private Long id;
     
+    @TableField("USER_ID")
     private String userId;
     
+    @TableField("PRODUCT_ID")
     private Long productId;
     
+    @TableField("QUANTITY")
     private Integer quantity;
     
+    @TableField("STATUS")
     private String status;
-    
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createdAt;
-    
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updatedAt;
     
     public Order() {}
     
@@ -70,21 +67,5 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }
